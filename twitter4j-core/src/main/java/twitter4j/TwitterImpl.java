@@ -18,7 +18,9 @@
 package twitter4j;
 
 import twitter4j.api.*;
+import twitter4j.auth.AccessToken;
 import twitter4j.auth.Authorization;
+import twitter4j.auth.RequestToken;
 import twitter4j.conf.Configuration;
 
 import java.io.*;

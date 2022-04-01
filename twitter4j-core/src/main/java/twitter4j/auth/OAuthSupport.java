@@ -160,6 +160,20 @@ public interface OAuthSupport {
     AccessToken getOAuthAccessToken(String screenName, String password) throws TwitterException;
 
     /**
+     * Retrieves an access token associated with the supplied screen name and password using 3-legged OAuth.
+     *
+     * @param oauthConsumerKey API key
+     * @param oauthConsumerSecretKey API key Secret
+     * @param requestToken the request token
+     * @param oauthVerifier OAuth verifier("oauth_verifier" parameter returned when a request token is generated)
+     * @return access token associated with the supplied request token.
+     * @throws TwitterException when Twitter service or network is unavailable, or the user has not authorized
+     *
+     * @see <a href="https://developer.twitter.com/en/docs/authentication/oauth-1-0a/obtaining-user-access-tokens">Obtaining Access Tokens using 3-legged OAuth flow</a>
+     */
+    AccessToken getOAuthAccessToken(String oauthConsumerKey, String oauthConsumerSecretKey, RequestToken requestToken, String oauthVerifier) throws TwitterException;
+
+    /**
      * Sets the access token
      *
      * @param accessToken accessToken

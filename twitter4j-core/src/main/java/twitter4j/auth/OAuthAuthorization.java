@@ -129,8 +129,7 @@ public class OAuthAuthorization implements Authorization, java.io.Serializable, 
     @Override
     public AccessToken getOAuthAccessToken(String oauthVerifier) throws TwitterException {
         ensureTokenIsAvailable();
-        oauthToken = new AccessToken(http.post(conf.getOAuthAccessTokenURL()
-                , new HttpParameter[]{new HttpParameter("oauth_verifier", oauthVerifier)}, this, null));
+        oauthToken = new AccessToken(http.post(conf.getOAuthAccessTokenURL(), new HttpParameter[]{new HttpParameter("oauth_verifier", oauthVerifier)}, this, null));
         return (AccessToken) oauthToken;
     }
 
@@ -147,6 +146,17 @@ public class OAuthAuthorization implements Authorization, java.io.Serializable, 
     }
 
     @Override
+    public AccessToken getOAuthAccessToken(String oauthConsumerKey, String oauthConsumerSecretKey, RequestToken requestToken, String oauthVerifier) throws TwitterException {
+        ensureTokenIsAvailable();
+        if (oauthToken instanceof AccessToken) {
+            return (AccessToken) oauthToken;
+        }
+        this.oauthToken = requestToken;
+        oauthToken = new AccessToken(http.post(conf.getOAuthAccessTokenURL(), new HttpParameter[]{new HttpParameter("oauth_consumer_key", oauthConsumerKey), new HttpParameter("oauth_consumer_secret", oauthConsumerSecretKey), new HttpParameter("oauth_verifier", oauthVerifier)}, this, null));
+        return (AccessToken) oauthToken;
+    }
+
+    @Override
     public AccessToken getOAuthAccessToken(String screenName, String password) throws TwitterException {
         try {
             String url = conf.getOAuthAccessTokenURL();
@@ -155,16 +165,13 @@ public class OAuthAuthorization implements Authorization, java.io.Serializable, 
                 // @see https://dev.twitter.com/docs/oauth/xauth
                 url = "https://" + url.substring(7);
             }
-            oauthToken = new AccessToken(http.post(url, new HttpParameter[]{
-                    new HttpParameter("x_auth_username", screenName),
-                    new HttpParameter("x_auth_password", password),
-                    new HttpParameter("x_auth_mode", "client_auth")
-            }, this, null));
+            oauthToken = new AccessToken(http.post(url, new HttpParameter[]{new HttpParameter("x_auth_username", screenName), new HttpParameter("x_auth_password", password), new HttpParameter("x_auth_mode", "client_auth")}, this, null));
             return (AccessToken) oauthToken;
         } catch (TwitterException te) {
             throw new TwitterException("The screen name / password combination seems to be invalid.", te, te.getStatusCode());
         }
     }
+
 
     @Override
     public void setOAuthAccessToken(AccessToken accessToken) {
@@ -201,8 +208,7 @@ public class OAuthAuthorization implements Authorization, java.io.Serializable, 
             signatureBaseParams.addAll(toParamList(params));
         }
         parseGetParameters(url, signatureBaseParams);
-        StringBuilder base = new StringBuilder(method).append("&")
-                .append(HttpParameter.encode(constructRequestURL(url))).append("&");
+        StringBuilder base = new StringBuilder(method).append("&").append(HttpParameter.encode(constructRequestURL(url))).append("&");
         base.append(HttpParameter.encode(normalizeRequestParameters(signatureBaseParams)));
         String oauthBaseString = base.toString();
         logger.debug("OAuth base string: ", oauthBaseString);
@@ -226,16 +232,9 @@ public class OAuthAuthorization implements Authorization, java.io.Serializable, 
                 for (String query : queryStrs) {
                     String[] split = query.split("=");
                     if (split.length == 2) {
-                        signatureBaseParams.add(
-                                new HttpParameter(URLDecoder.decode(split[0],
-                                        "UTF-8"), URLDecoder.decode(split[1],
-                                        "UTF-8"))
-                        );
+                        signatureBaseParams.add(new HttpParameter(URLDecoder.decode(split[0], "UTF-8"), URLDecoder.decode(split[1], "UTF-8")));
                     } else {
-                        signatureBaseParams.add(
-                                new HttpParameter(URLDecoder.decode(split[0],
-                                        "UTF-8"), "")
-                        );
+                        signatureBaseParams.add(new HttpParameter(URLDecoder.decode(split[0], "UTF-8"), ""));
                     }
                 }
             } catch (UnsupportedEncodingException ignore) {
@@ -275,8 +274,7 @@ public class OAuthAuthorization implements Authorization, java.io.Serializable, 
         signatureBaseParams.addAll(oauthHeaderParams);
         parseGetParameters(url, signatureBaseParams);
 
-        StringBuilder base = new StringBuilder(method).append("&")
-                .append(HttpParameter.encode(constructRequestURL(url))).append("&");
+        StringBuilder base = new StringBuilder(method).append("&").append(HttpParameter.encode(constructRequestURL(url))).append("&");
         base.append(HttpParameter.encode(normalizeRequestParameters(signatureBaseParams)));
 
         String oauthBaseString = base.toString();
@@ -450,14 +448,10 @@ public class OAuthAuthorization implements Authorization, java.io.Serializable, 
 
         OAuthAuthorization that = (OAuthAuthorization) o;
 
-        if (consumerKey != null ? !consumerKey.equals(that.consumerKey) : that.consumerKey != null)
-            return false;
+        if (consumerKey != null ? !consumerKey.equals(that.consumerKey) : that.consumerKey != null) return false;
         if (consumerSecret != null ? !consumerSecret.equals(that.consumerSecret) : that.consumerSecret != null)
             return false;
-        if (oauthToken != null ? !oauthToken.equals(that.oauthToken) : that.oauthToken != null)
-            return false;
-
-        return true;
+        return oauthToken != null ? oauthToken.equals(that.oauthToken) : that.oauthToken == null;
     }
 
     @Override
@@ -470,10 +464,6 @@ public class OAuthAuthorization implements Authorization, java.io.Serializable, 
 
     @Override
     public String toString() {
-        return "OAuthAuthorization{" +
-                "consumerKey='" + consumerKey + '\'' +
-                ", consumerSecret='******************************************\'" +
-                ", oauthToken=" + oauthToken +
-                '}';
+        return "OAuthAuthorization{" + "consumerKey='" + consumerKey + '\'' + ", consumerSecret='******************************************'" + ", oauthToken=" + oauthToken + '}';
     }
 }

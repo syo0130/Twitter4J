@@ -2809,6 +2809,11 @@ class AsyncTwitterImpl extends TwitterBaseImpl implements AsyncTwitter {
     }
 
     @Override
+    public AccessToken getOAuthAccessToken(String oauthConsumerKey, String oauthConsumerSecretKey, RequestToken requestToken, String oauthVerifier) throws TwitterException {
+        return twitter.getOAuthAccessToken(oauthConsumerKey, oauthConsumerSecretKey, requestToken, oauthVerifier);
+    }
+
+    @Override
     public synchronized OAuth2Token getOAuth2Token() throws TwitterException {
         return twitter.getOAuth2Token();
     }
